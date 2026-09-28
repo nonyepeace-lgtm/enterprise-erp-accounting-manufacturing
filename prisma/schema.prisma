@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalSide {
+  DEBIT
+  CREDIT
+}
+
+enum PeriodStatus {
+  OPEN
+  PENDING_CLOSE
+  CLOSED
+  LOCKED
+}
+
+enum EntryStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  POSTED
+  RECONCILED
+  CLOSED
+}
+
+model Company {
+  id           String      @id @default(uuid())
+  name         String
+  shortName    String?
+  taxId        String?
+  currency     String      @default("NGN")
+  createdAt    DateTime    @default(now())
+  users        User[]
+  accounts     Account[]
+  periods      AccountingPeriod[]
+  journalEntries JournalEntry[]
+  sourceDocuments SourceDocument[]
+  auditLogs    AuditLog[]
+}
+
+model User {
+  id                 String       @id @default(uuid())
+  companyId          String
+  email              String
+  firstName          String
+  lastName           String
+  isActive           Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  company            Company      @relation(fields: [companyId], references: [id])
+  roles              UserRole[]
+  createdEntries     JournalEntry[] @relation("CreatedBy")
+  approvedEntries    JournalEntry[] @relation("ApprovedBy")
+  auditLogs          AuditLog[]
+
+  @@unique([companyId, email])
+}
+
+model Role {
+  id          String          @id @default(uuid())
+  companyId   String?
+  name        String
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id    String          @id @default(uuid())
+  key   String          @unique
+  label String
+  roles RolePermission[]
+}
+
+model RolePermission {
+  id           String      @id @default(uuid())
+  roleId       String
+  permissionId String
+  role         Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model Account {
+  id              String       @id @default(uuid())
+  companyId       String
+  code            String
+  name            String
+  accountType     AccountType
+  normalSide      NormalSide
+  currency        String       @default("NGN")
+  parentAccountId String?
+  company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parentAccount   Account?     @relation("AccountHierarchy", fields: [parentAccountId], references: [id])
+  children        Account[]    @relation("AccountHierarchy")
+  journalLines    JournalLine[]
+
+  @@unique([companyId, code])
+}
+
+model AccountingPeriod {
+  id        String        @id @default(uuid())
+  companyId String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    PeriodStatus  @default(OPEN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journals  JournalEntry[]
+}
+
+model SourceDocument {
+  id                String        @id @default(uuid())
+  companyId         String
+  documentType      String
+  documentNumber    String
+  reference         String?
+  externalId        String?
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime      @default(now())
+  company           Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  journals          JournalEntry[]
+
+  @@unique([companyId, documentNumber])
+}
+
+model JournalEntry {
+  id                String          @id @default(uuid())
+  companyId         String
+  periodId          String
+  sourceDocumentId  String?
+  journalNumber     String          @unique
+  documentNumber    String          @unique
+  transactionId     String          @unique
+  reference         String?
+  description       String
+  entryDate         DateTime
+  status            EntryStatus     @default(DRAFT)
+  createdByUserId   String
+  approvedByUserId  String?
+  reversalOfId      String?
+  postedAt          DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  period            AccountingPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  sourceDocument    SourceDocument? @relation(fields: [sourceDocumentId], references: [id])
+  creator           User            @relation("CreatedBy", fields: [createdByUserId], references: [id])
+  approver          User?           @relation("ApprovedBy", fields: [approvedByUserId], references: [id])
+  reversalOf        JournalEntry?  @relation("Reversal", fields: [reversalOfId], references: [id])
+  reversedBy        JournalEntry[]  @relation("Reversal")
+  lines             JournalLine[]
+}
+
+model JournalLine {
+  id            String       @id @default(uuid())
+  journalEntryId String
+  accountId     String
+  narration      String
+  debit         Decimal      @default(0)
+  credit        Decimal      @default(0)
+  createdAt     DateTime     @default(now())
+  journalEntry  JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account       Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId, accountId])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  companyId   String
+  entityType  String
+  entityId    String
+  action      String
+  actorUserId String?
+  reason      String?
+  changes     String?
+  createdAt   DateTime @default(now())
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+}

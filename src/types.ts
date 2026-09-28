@@ -44,3 +44,72 @@ export type AccountConfig = {
   type: AccountType;
   normalSide: NormalSide;
 };
+
+export type Supplier = {
+  id: string;
+  name: string;
+  tin: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  customerCode: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+};
+
+export type InventoryItem = {
+  id: string;
+  sku: string;
+  name: string;
+  category: 'RAW_MATERIAL' | 'WIP' | 'FINISHED_GOOD';
+  unitCost: number;
+  quantityOnHand: number;
+};
+
+export type PurchaseLineItem = {
+  sku: string;
+  name: string;
+  quantity: number;
+  unitCost: number;
+  taxRate: number;
+};
+
+export type SaleLineItem = {
+  sku: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  unitCost: number;
+  taxRate: number;
+};
+
+export type BankReconciliationResult = {
+  ledgerBalance: number;
+  statementBalance: number;
+  difference: number;
+  isBalanced: boolean;
+  unresolvedItems: string[];
+};
+
+export type AgingBucket = {
+  current: number;
+  days30: number;
+  days60: number;
+  days90: number;
+  overdue: number;
+};
+
+export type ReceivablesPayablesSummary = {
+  totalReceivables: number;
+  totalPayables: number;
+  receivablesAging: AgingBucket;
+  payablesAging: AgingBucket;
+};

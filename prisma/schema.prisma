@@ -7,35 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum AccountType {
-  ASSET
-  LIABILITY
-  EQUITY
-  REVENUE
-  EXPENSE
-}
-
-enum NormalSide {
-  DEBIT
-  CREDIT
-}
-
-enum PeriodStatus {
-  OPEN
-  PENDING_CLOSE
-  CLOSED
-  LOCKED
-}
-
-enum EntryStatus {
-  DRAFT
-  SUBMITTED
-  APPROVED
-  POSTED
-  RECONCILED
-  CLOSED
-}
-
 model Company {
   id           String      @id @default(uuid())
   name         String
@@ -109,8 +80,8 @@ model Account {
   companyId       String
   code            String
   name            String
-  accountType     AccountType
-  normalSide      NormalSide
+  accountType     String
+  normalSide      String
   currency        String       @default("NGN")
   parentAccountId String?
   company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -127,7 +98,7 @@ model AccountingPeriod {
   name      String
   startDate DateTime
   endDate   DateTime
-  status    PeriodStatus  @default(OPEN)
+  status    String        @default("OPEN")
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -161,7 +132,7 @@ model JournalEntry {
   reference         String?
   description       String
   entryDate         DateTime
-  status            EntryStatus     @default(DRAFT)
+  status            String          @default("DRAFT")
   createdByUserId   String
   approvedByUserId  String?
   reversalOfId      String?

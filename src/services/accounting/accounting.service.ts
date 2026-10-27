@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { AccountConfig, JournalEntryInput, PeriodChecklist } from '../types.js';
+import { AccountConfig, JournalEntryInput, PeriodChecklist } from '../../types.js';
 
 export class ChartOfAccountsService {
   static createDefaultChart(companyId: string): AccountConfig[] {

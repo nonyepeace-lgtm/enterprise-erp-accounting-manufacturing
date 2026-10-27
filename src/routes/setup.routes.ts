@@ -1,16 +1,18 @@
 import { Router } from 'express';
-import { accountingRoutes } from './accounting.routes.js';
+import { ChartOfAccountsService } from '../services/accounting/accounting.service.js';
 
 export const setupRoutes = Router();
 
-setupRoutes.post('/setup-company', async (req, res) => {
-  try {
-    await accountingRoutes.setup(req, res);
-  } catch (error) {
-    res.status(500).json({ message: 'Setup failed', error: (error as Error).message });
-  }
+setupRoutes.post('/setup-company', (req, res) => {
+  const { companyId, companyName } = req.body ?? {};
+  if (!companyId || !companyName) return res.status(400).json({ error: 'companyId and companyName are required.' });
+  const chart = ChartOfAccountsService.createDefaultChart(companyId);
+  return res.status(201).json({
+    message: 'Starter chart generated; database persistence is not yet implemented.',
+    company: { id: companyId, name: companyName },
+    chartLength: chart.length,
+    chart,
+  });
 });
 
-setupRoutes.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
+setupRoutes.get('/health', (_req, res) => res.json({ status: 'ok' }));

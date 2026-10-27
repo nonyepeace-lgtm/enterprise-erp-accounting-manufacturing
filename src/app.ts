@@ -22,4 +22,6 @@ app.get('/health', (_req, res) => {
 app.use('/api', setupRoutes);
 app.use('/api', accountingRoutes);
 
+app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
+
 export default app;

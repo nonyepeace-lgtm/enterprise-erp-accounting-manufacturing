@@ -1,6 +1,6 @@
 # Enterprise ERP Accounting and Manufacturing System
 
-This repository is the foundation for a genuine enterprise ERP focused on accounting, manufacturing, inventory, and tax operations with a strong emphasis on auditability and financial integrity.
+A TypeScript/Express starter backend for an enterprise ERP concept focused on accounting, manufacturing, inventory, and tax operations. The current code is an early-stage prototype; several endpoints use in-memory calculations and do not yet persist financial transactions through Prisma.
 
 ## Phase 1 status
 
@@ -13,7 +13,7 @@ The repository includes the initial implementation for Phase 1:
 - Accounting period controls
 - Audit trail service
 - Financial calculation utilities
-- Automated tests covering critical accounting scenarios
+- Test cases written for critical accounting scenarios (execution status must be verified locally or in CI)
 
 ## Architectural principles
 
@@ -47,12 +47,16 @@ The repository includes the initial implementation for Phase 1:
   - VAT, PAYE, WHT
   - depreciation
 
-## Recommended next actions
+## Run locally
 
-1. Run `npm install`
-2. Run `npx prisma generate`
-3. Run `npm test`
-4. Create the next phase implementation for suppliers/customers/purchasing/sales
+1. Install Node.js (LTS) and a supported npm version.
+2. Run `npm install`.
+3. Copy `.env.example` to `.env` and set `DATABASE_URL` (for SQLite, for example `file:./dev.db`).
+4. Run `npx prisma generate`.
+5. Run `npm run build` and `npm test`.
+6. Start the server with `npm start` and check `GET /health`.
+
+**Status note:** these commands are the intended verification path. Do not treat the project as production-ready until build, tests, database migrations, authentication, authorization, persistence, and security review have been run and confirmed.
 
 ## Naming and regulatory direction
 
